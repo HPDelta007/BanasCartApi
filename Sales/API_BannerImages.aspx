@@ -1,0 +1,1 @@
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="API_BannerImages.aspx.cs" Inherits="API_BannerImages" %>

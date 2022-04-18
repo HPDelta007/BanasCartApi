@@ -1,0 +1,1 @@
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="API_GetNewsLetters.aspx.cs" Inherits="API_API_GetNewsLetters" %>

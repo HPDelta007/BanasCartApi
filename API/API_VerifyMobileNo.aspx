@@ -1,0 +1,1 @@
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="API_VerifyMobileNo.aspx.cs" Inherits="API_VerifyMobileNo" %>
