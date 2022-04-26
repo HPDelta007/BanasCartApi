@@ -13,14 +13,9 @@ using System.Web.Script.Serialization;
 using System.Text;
 
 
-public partial class API_VerifyOTP : System.Web.UI.Page
+public partial class API_DeleteCartAfterCheckout : System.Web.UI.Page
 {
-    string MobileNo;
-    string UserType;
-    string OTP;
-    //string IMEI;
-    //string FCMId;
-    //string APIKey;
+    string UserId;
 
     API_BLL _aPI_BLL = new API_BLL();
 
@@ -30,53 +25,11 @@ public partial class API_VerifyOTP : System.Web.UI.Page
         {
             try
             {
-                if (Request.Form["MobileNo"] != null && Request.Form["MobileNo"] != "")
-                    MobileNo = Request.Form["MobileNo"].ToString();
-                else
-                    MobileNo = null;
-
-                if (Request.Form["UserType"] != null && Request.Form["UserType"] != "")
-                    UserType = Request.Form["UserType"].ToString();
-                else
-                    UserType = null;
-
-                if (Request.Form["OTP"] != null && Request.Form["OTP"] != "")
-                    OTP = Request.Form["OTP"].ToString();
-                else
-                    OTP = null;
-
-                //if (Request.Form["IMEI"] != null && Request.Form["IMEI"] != "")
-                //    IMEI = Request.Form["IMEI"].ToString();
-                //else
-                //    IMEI = null;
-
-                //if (Request.Form["FCMId"] != null && Request.Form["FCMId"] != "")
-                //    FCMId = Request.Form["FCMId"].ToString();
-                //else
-                //    FCMId = null;
-
-                //if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
-                //    APIKey = Request.Form["APIKey"].ToString();
-                //else
-                //    APIKey = null;
+                UserId = (((Request.Form["UserId"] != null && Request.Form["UserId"] != "")) ? Request.Form["UserId"].ToString() : null);
 
                 Response.ContentType = "application/json";
 
-                string ConfigAPIKey = ConfigurationManager.AppSettings["APIKey"].ToString();
-
-                //if (ConfigAPIKey == APIKey)
-                //{
-                    Response.Write(selectdata());
-                //}
-                //else
-                //{
-                //    string sw = "";
-                //    StringBuilder s = new StringBuilder();
-                //    s.Append("Authentication Key is wrong.");
-                //    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
-                //    Response.ContentType = "application/json";
-                //    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
-                //}
+                Response.Write(selectdata());
             }
             catch (Exception ex)
             {
@@ -139,47 +92,30 @@ public partial class API_VerifyOTP : System.Web.UI.Page
 
     public string selectdata()
     {
-
         DataTable da = new DataTable();
         StringBuilder st = new StringBuilder();
         string ReturnVal = "";
+
         try
         {
-            da = _aPI_BLL.returnDataTable(" select *,NULL as DistributorDealerId from Users u where MobileNo = '" + MobileNo.ToString() + "' " +
-                //" and UserTypeTextListId in (select TextListId from TextLists where [Group] = 'UserType' and [Text]  ='" + UserType.ToString() + "') " +
-                                          " and (OTP = '" + OTP.ToString() + "' or '2022' = '2022') " +
-                                          " and isnull(IsDisabled, 0) = 0 ");
+            _aPI_BLL.InsertUpdateNonQuery(" delete from MyCarts where UserId = '" + UserId + "' ");
 
-            if (da.Rows.Count > 0)
-            {
-                //_aPI_BLL.InsertUpdateNonQuery("update Users set IMEI = '" + IMEI.ToString() + "', FCMId = '" + FCMId.ToString() + "' where UserId = '" + da.Rows[0]["UserId"].ToString() + "' ");
 
-                da = _aPI_BLL.returnDataTable(" select u.*,t.Text as UserType, NULL as DistributorDealerId " +
-                                          " from Users u inner join TextLists t on t.TextListId = u.UserTypeTextListId where u.MobileNo = '" + MobileNo.ToString() + "' " +
-                    //" and UserTypeTextListId in (select TextListId from TextLists where [Group] = 'UserType' and [Text]  ='" + UserType.ToString() + "') " +
-                                          " and (u.OTP = '" + OTP.ToString() + "' or '2022' = '2022') " +
-                                          " and isnull(IsDisabled, 0) = 0 ");
-
-                st.Append(DataTableToJsonObj(da));
-            }
-            else
-            {
-                st.Append(DataTableToJsonObj(da));
-            }
+            st.Append(DataTableToJsonObj(da));
 
             if (da == null)
             {
-                ReturnVal = GetReturnValue("209", "No Record Found", st);
+                ReturnVal = GetReturnValue("200", "Data Delete", st);
             }
 
             if (st.ToString() == "[]" || st.ToString() == "")
             {
-                ReturnVal = GetReturnValue("209", "No Record Found", st);
+                ReturnVal = GetReturnValue("200", "Data Delete", st);
             }
 
             if (da.Rows.Count > 0)
             {
-                ReturnVal = GetReturnValue("200", "Data Get", st);
+                ReturnVal = GetReturnValue("200", "Data Delete", st);
             }
 
             if (st.ToString() != "[]")

@@ -4,26 +4,18 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Configuration;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using System.Data;
-using System.Collections;
-using System.Web.Script.Serialization;
 using System.Text;
+using System.Collections;
+using System.Data;
+using System.Web.Script.Serialization;
 
-
-public partial class API_VerifyOTP : System.Web.UI.Page
+public partial class API_API_ForgotPassword : System.Web.UI.Page
 {
     string MobileNo;
-    string UserType;
-    string OTP;
-    //string IMEI;
-    //string FCMId;
-    //string APIKey;
+    string NewPassword;
+    string ConfirmPassword;
 
     API_BLL _aPI_BLL = new API_BLL();
-
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
@@ -35,48 +27,19 @@ public partial class API_VerifyOTP : System.Web.UI.Page
                 else
                     MobileNo = null;
 
-                if (Request.Form["UserType"] != null && Request.Form["UserType"] != "")
-                    UserType = Request.Form["UserType"].ToString();
+                if (Request.Form["NewPassword"] != null && Request.Form["NewPassword"] != "")
+                    NewPassword = Request.Form["NewPassword"].ToString();
                 else
-                    UserType = null;
+                    NewPassword = null;
 
-                if (Request.Form["OTP"] != null && Request.Form["OTP"] != "")
-                    OTP = Request.Form["OTP"].ToString();
+                if (Request.Form["ConfirmPassword"] != null && Request.Form["ConfirmPassword"] != "")
+                    ConfirmPassword = Request.Form["ConfirmPassword"].ToString();
                 else
-                    OTP = null;
-
-                //if (Request.Form["IMEI"] != null && Request.Form["IMEI"] != "")
-                //    IMEI = Request.Form["IMEI"].ToString();
-                //else
-                //    IMEI = null;
-
-                //if (Request.Form["FCMId"] != null && Request.Form["FCMId"] != "")
-                //    FCMId = Request.Form["FCMId"].ToString();
-                //else
-                //    FCMId = null;
-
-                //if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
-                //    APIKey = Request.Form["APIKey"].ToString();
-                //else
-                //    APIKey = null;
+                    ConfirmPassword = null;
 
                 Response.ContentType = "application/json";
 
-                string ConfigAPIKey = ConfigurationManager.AppSettings["APIKey"].ToString();
-
-                //if (ConfigAPIKey == APIKey)
-                //{
-                    Response.Write(selectdata());
-                //}
-                //else
-                //{
-                //    string sw = "";
-                //    StringBuilder s = new StringBuilder();
-                //    s.Append("Authentication Key is wrong.");
-                //    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
-                //    Response.ContentType = "application/json";
-                //    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
-                //}
+                Response.Write(selectdata());
             }
             catch (Exception ex)
             {
@@ -89,14 +52,12 @@ public partial class API_VerifyOTP : System.Web.UI.Page
             }
         }
     }
-
     public class ResponseData
     {
         public int? status { get; set; }
         public string message { get; set; }
         public ArrayList Result { get; set; }
     }
-
     public string DataTableToJsonObj(DataTable dt)
     {
         DataSet ds = new DataSet();
@@ -139,33 +100,41 @@ public partial class API_VerifyOTP : System.Web.UI.Page
 
     public string selectdata()
     {
-
         DataTable da = new DataTable();
         StringBuilder st = new StringBuilder();
         string ReturnVal = "";
         try
         {
-            da = _aPI_BLL.returnDataTable(" select *,NULL as DistributorDealerId from Users u where MobileNo = '" + MobileNo.ToString() + "' " +
-                //" and UserTypeTextListId in (select TextListId from TextLists where [Group] = 'UserType' and [Text]  ='" + UserType.ToString() + "') " +
-                                          " and (OTP = '" + OTP.ToString() + "' or '2022' = '2022') " +
-                                          " and isnull(IsDisabled, 0) = 0 ");
+            da = _aPI_BLL.returnDataTable("select * from Users where MobileNo = '" + MobileNo + "' ");
 
             if (da.Rows.Count > 0)
             {
-                //_aPI_BLL.InsertUpdateNonQuery("update Users set IMEI = '" + IMEI.ToString() + "', FCMId = '" + FCMId.ToString() + "' where UserId = '" + da.Rows[0]["UserId"].ToString() + "' ");
+                if (NewPassword == ConfirmPassword)
+                {
+                    _aPI_BLL.InsertUpdateNonQuery("update Users set Password = '" + NewPassword.ToString() + "' where UserId = '" + da.Rows[0]["UserId"].ToString() + "' ");
 
-                da = _aPI_BLL.returnDataTable(" select u.*,t.Text as UserType, NULL as DistributorDealerId " +
-                                          " from Users u inner join TextLists t on t.TextListId = u.UserTypeTextListId where u.MobileNo = '" + MobileNo.ToString() + "' " +
-                    //" and UserTypeTextListId in (select TextListId from TextLists where [Group] = 'UserType' and [Text]  ='" + UserType.ToString() + "') " +
-                                          " and (u.OTP = '" + OTP.ToString() + "' or '2022' = '2022') " +
-                                          " and isnull(IsDisabled, 0) = 0 ");
+                    da = _aPI_BLL.returnDataTable("select * from Users u where u.MobileNo = '" + MobileNo.ToString() + "'" +
+                        " and isnull(IsDisabled, 0) = 0 ");
 
-                st.Append(DataTableToJsonObj(da));
+                    st.Append(DataTableToJsonObj(da));
+                    ReturnVal = GetReturnValue("200", "Password change successfully", st);
+                }
             }
-            else
-            {
-                st.Append(DataTableToJsonObj(da));
-            }
+            
+            //else
+            //{
+            //    st.Append(DataTableToJsonObj(da));
+            //    ReturnVal = GetReturnValue("209", "New Password and Confirm Password Do not Match", st);
+            //}
+
+            //if (da.Rows.Count > 0)
+            //{
+            //    st.Append(DataTableToJsonObj(da));
+            //}
+            //else
+            //{
+            //    st.Append(DataTableToJsonObj(da));
+            //}
 
             if (da == null)
             {
@@ -177,15 +146,21 @@ public partial class API_VerifyOTP : System.Web.UI.Page
                 ReturnVal = GetReturnValue("209", "No Record Found", st);
             }
 
-            if (da.Rows.Count > 0)
+            if (NewPassword != ConfirmPassword)
             {
-                ReturnVal = GetReturnValue("200", "Data Get", st);
+                ReturnVal = GetReturnValue("209", "New Password and Confirm Password Do not Match", st);
             }
+
+            //if (da.Rows.Count > 0)
+            //{
+            //    ReturnVal = GetReturnValue("200", "Data Get", st);
+            //}
 
             if (st.ToString() != "[]")
                 return ReturnVal.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]");
             else
                 return ReturnVal.Replace("\\", "").Replace("\"[]\"", "[]");
+            
         }
         catch (Exception ex)
         {

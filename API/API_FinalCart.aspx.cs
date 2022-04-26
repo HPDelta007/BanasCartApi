@@ -327,8 +327,8 @@ public partial class API_FinalCart : System.Web.UI.Page
                     //            " FROM MyCarts where ItmId = '" + dt.Rows[i]["ItmId"].ToString() + "' and InsertedByUserId = '" + UserId + "'";
                     //itsDriver.fExecuteNonQuery(sql2);
 
-                    string sql2 = "delete from MyCarts where ItmId = '" + dt.Rows[i]["ItmId"].ToString() + "' and UserId ='" + UserId + "' ";
-                    itsDriver.fExecuteNonQuery(sql2);
+                    //string sql2 = "delete from MyCarts where ItmId = '" + dt.Rows[i]["ItmId"].ToString() + "' and UserId ='" + UserId + "' ";
+                    //itsDriver.fExecuteNonQuery(sql2);
                 }
             }
 

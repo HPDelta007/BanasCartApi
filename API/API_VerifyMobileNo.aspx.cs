@@ -19,10 +19,10 @@ public partial class API_VerifyMobileNo : System.Web.UI.Page
 {
     private tungComponents.tungDbDriver.DriverSqlServer itsDriver;
     string MobileNo;
-    string UserType;
+    //string UserType;
     string Key;
     string SendOTP;
-    string APIKey;
+    //string APIKey;
 
     //API_BLL _aPI_BLL = new API_BLL();
 
@@ -47,27 +47,27 @@ public partial class API_VerifyMobileNo : System.Web.UI.Page
                 else
                     SendOTP = "YES";
 
-                if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
-                    APIKey = Request.Form["APIKey"].ToString();
-                else
-                    APIKey = null;
+                //if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
+                //    APIKey = Request.Form["APIKey"].ToString();
+                //else
+                //    APIKey = null;
 
                 Response.ContentType = "application/json";
                 string ConfigAPIKey = ConfigurationManager.AppSettings["APIKey"].ToString();
 
-                if (ConfigAPIKey == APIKey)
-                {
+                //if (ConfigAPIKey == APIKey)
+                //{
                     Response.Write(selectdata());
-                }
-                else
-                {
-                    string sw = "";
-                    StringBuilder s = new StringBuilder();
-                    s.Append("Authentication Key is wrong.");
-                    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
-                    Response.ContentType = "application/json";
-                    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
-                }
+                //}
+                //else
+                //{
+                //    string sw = "";
+                //    StringBuilder s = new StringBuilder();
+                //    s.Append("Authentication Key is wrong.");
+                //    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
+                //    Response.ContentType = "application/json";
+                //    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
+                //}
             }
             catch (Exception ex)
             {
@@ -170,29 +170,29 @@ public partial class API_VerifyMobileNo : System.Web.UI.Page
 
                 st.Append(DataTableToJsonObj(da));
 
-                if (SendOTP == "YES")
-                {
-                    string Message = "<#> " + OTP + " for Krishna Distribution House dealer Application Login.- " + Key + "";
+                //if (SendOTP == "YES")
+                //{
+                //    string Message = "<#> " + OTP + " for Banas Dairy Application Login.- " + Key + "";
 
-                    DataTable dtGeneralSettings = new DataTable();
+                //    DataTable dtGeneralSettings = new DataTable();
 
-                    itsDriver.fSelectAndFillDataTable(" select * from Facets where FacetName = 'OTPSMSString' ", dtGeneralSettings);
+                //    itsDriver.fSelectAndFillDataTable(" select * from Facets where FacetName = 'OTPSMSString' ", dtGeneralSettings);
 
-                    string strUrl = dtGeneralSettings.Rows[0]["FacetText"].ToString();
+                //    string strUrl = dtGeneralSettings.Rows[0]["FacetText"].ToString();
 
-                    Message = replaceSplChar(Message);
+                //    Message = replaceSplChar(Message);
 
-                    strUrl = strUrl.Replace("[MOBILENO]", MobileNo);
-                    strUrl = strUrl.Replace("[TEXT]", Message);
-                    WebRequest request = HttpWebRequest.Create(strUrl);
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    Stream s = (Stream)response.GetResponseStream();
-                    StreamReader readStream = new StreamReader(s);
-                    string dataString = readStream.ReadToEnd();
-                    response.Close();
-                    s.Close();
-                    readStream.Close();
-                }
+                //    strUrl = strUrl.Replace("[MOBILENO]", MobileNo);
+                //    strUrl = strUrl.Replace("[TEXT]", Message);
+                //    WebRequest request = HttpWebRequest.Create(strUrl);
+                //    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                //    Stream s = (Stream)response.GetResponseStream();
+                //    StreamReader readStream = new StreamReader(s);
+                //    string dataString = readStream.ReadToEnd();
+                //    response.Close();
+                //    s.Close();
+                //    readStream.Close();
+                //}
             }
             else
             {

@@ -4,27 +4,22 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Configuration;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text;
 using System.Data;
 using System.Collections;
+using Newtonsoft.Json;
+using System.Configuration;
 using System.Web.Script.Serialization;
-using System.Text;
-using System.Web.Configuration;
 
-public partial class API_OrderListSubTable : System.Web.UI.Page
+public partial class API_API_MyOrders : System.Web.UI.Page
 {
     private tungComponents.tungDbDriver.DriverSqlServer itsDriver;
 
     DateTime? FromDate;
     DateTime? ToDate;
-    string No;
-    string ItmCode;
-    string CustomerCode;
+    string Name;
+    string ItmId;
     string UserId;
-    string APIKey;
-
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
@@ -49,31 +44,22 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
                     ToDate = null;
                 }
 
-                if (Request.Form["No"] != null && Request.Form["No"] != "")
+                if (Request.Form["Name"] != null && Request.Form["Name"] != "")
                 {
-                    No = Request.Form["No"].ToString();
+                    Name = Request.Form["Name"].ToString();
                 }
                 else
                 {
-                    No = null;
+                    Name = null;
                 }
 
-                if (Request.Form["ItmCode"] != null && Request.Form["ItmCode"] != "")
+                if (Request.Form["ItmId"] != null && Request.Form["ItmId"] != "")
                 {
-                    ItmCode = Request.Form["ItmCode"].ToString();
+                    ItmId = Request.Form["ItmId"].ToString();
                 }
                 else
                 {
-                    ItmCode = null;
-                }
-
-                if (Request.Form["CustomerCode"] != null && Request.Form["CustomerCode"] != "")
-                {
-                    CustomerCode = Request.Form["CustomerCode"].ToString();
-                }
-                else
-                {
-                    CustomerCode = null;
+                    ItmId = null;
                 }
 
                 if (Request.Form["UserId"] != null && Request.Form["UserId"] != "")
@@ -84,31 +70,12 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
                 {
                     UserId = null;
                 }
-
-                if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
-                    APIKey = Request.Form["APIKey"].ToString();
-                else
-                    APIKey = null;
-
                 Response.ContentType = "application/json";
 
-                string ConfigAPIKey = ConfigurationManager.AppSettings["APIKey"].ToString();
+                Response.Write(GetData());
 
-                if (ConfigAPIKey == APIKey)
-                {
-                    Response.Write(GetData());
-                }
-                else
-                {
-                    string sw = "";
-                    StringBuilder s = new StringBuilder();
-                    s.Append("Authentication Key is wrong.");
-                    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
-                    Response.ContentType = "application/json";
-                    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
-                } 
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 string sw = "";
                 StringBuilder s = new StringBuilder();
@@ -119,7 +86,6 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
             }
         }
     }
-
     public string DataTableToJSONWithJSONNet(DataTable table)
     {
         string JSONString = string.Empty;
@@ -147,7 +113,6 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
         public string message { get; set; }
         public ArrayList Result { get; set; }
     }
-
     public string DataTableToJsonObj(DataTable dt)
     {
         DataSet ds = new DataSet();
@@ -220,42 +185,31 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
             }
 
             //No
-            if (No != null)
+            if (Name != null)
             {
                 if (where != "")
                 {
                     where += " AND ";
                 }
-                where += " s.SONo Like '%" + No + "%'";
+                where += " i.Name Like '%" + Name + "%'";
             }
 
-            //CustomerCode
-            if (CustomerCode != null)
+            if (ItmId != null)
             {
                 if (where != "")
                 {
                     where += " AND ";
                 }
-                where += " s.CustomerCode = '" + CustomerCode + "'";
+                where += " sl.ItmId ='" + ItmId + "' ";
             }
-            else
+            if (UserId != null)
             {
                 if (where != "")
                 {
                     where += " AND ";
                 }
-                where += " s.CustomerCode in (select DistributorDealerId from UserRights where UserId = '" + UserId + "') ";
+                where += " u.UserId ='" + UserId + "' "; 
             }
-
-            if (ItmCode != null)
-            {
-                if (where != "")
-                {
-                    where += " AND ";
-                }
-                where += " sl.ItmCode ='" + ItmCode + "' ";
-            }
-
             if (where != "")
             {
                 where = " WHERE " + where;
@@ -267,16 +221,11 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
 
             int tempResult1 = 0;
 
-            //tempResult1 = itsDriver.fSelectAndFillDataTable(" select s.SOId, s.SODt, s.SONo, replace(d.Name, '\"', 'U+0022') as 'CustomerName', replace(m.Name, '\"', 'U+0022') as 'ItmName', sl.Qty as 'OrderQty', sl.ExpectedDeliDt, sl.Qty as 'PendingQty' " +
-            //                                              " ,u.FirstName + ' '+ u.LastName  + case when  s.LastUpdatedByUserId is null then '' else 'Update:' + u.FirstName + ' '+ u.LastName end as UserName,sl.SOLnID from SOs s " +
-            //                                              " inner join SOLns sl on sl.SOId = s.SOId " +
-            //                                              " inner join Master1 m on m.Code = sl.ItmCode and MasterType = 6 " +
-            //                                              " inner join Debtors d on d.Code = s.CustomerCode " +
-            //                                              " inner join Users u on s.InsertedByUserId = u.UserId left join  Users uu on s.LastUpdatedByUserId = uu.UserId " + where + " order by s.InsertedOn desc ", DtMain);
-            tempResult1 = itsDriver.fSelectAndFillDataTable(" select s.SOId, s.SODt, s.SONo, replace(d.Name, '\"', 'U+0022') as 'CustomerName' " +
+            tempResult1 = itsDriver.fSelectAndFillDataTable(" select s.SOId, s.SODt, s.SONo" +
                                                          " ,u.FirstName + ' '+ u.LastName  + case when  s.LastUpdatedByUserId is null then '' else 'Update:' + u.FirstName + ' '+ u.LastName end as UserName " +
-                                                         " , (select Max(sl.ExpectedDeliDt) from SoLns sl Where sl.SoId= s.SoId ) as ExpectedDeliDt from SOs s " +
-                                                         " inner join Debtors d on d.Code = s.CustomerCode " +
+                                                         " , (select Max(sl.ExpectedDeliDt) from OnlineSOLns sl Where sl.SoId= s.SoId ) as ExpectedDeliDt from OnlineSos s " +
+                                                          " inner join OnlineSOLns sl on sl.SOId = s.SOId " +
+                                                         " inner join Itms i on i.ItmId = sl.ItmId" +
                                                          " inner join Users u on s.InsertedByUserId = u.UserId left join  Users uu on s.LastUpdatedByUserId = uu.UserId " + where + " order by s.InsertedOn desc ", DtMain);
 
             //st.Append(DataTableToJsonObj(Dt.Tables[0]));
@@ -288,26 +237,42 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
                     DataTable Dt1 = new DataTable();
 
 
-                    itsDriver.fSelectAndFillDataTable(" select s.SOId, s.SODt, s.SONo, replace(d.Name, '\"', 'U+0022') as 'CustomerName', replace(m.Name, '\"', 'U+0022') as 'ItmName', sl.Qty as 'OrderQty', sl.ExpectedDeliDt, sl.Qty as 'PendingQty' " +
-                                                      " ,u.FirstName + ' '+ u.LastName  + case when  s.LastUpdatedByUserId is null then '' else 'Update:' + u.FirstName + ' '+ u.LastName end as UserName,sl.SOLnID,sl.Remarks from SOs s " +
-                                                      " inner join SOLns sl on sl.SOId = s.SOId " +
-                                                      " inner join Master1 m on m.Code = sl.ItmCode and MasterType = 6 " +
-                                                      " inner join Debtors d on d.Code = s.CustomerCode " +
-                                                      " inner join Users u on s.InsertedByUserId = u.UserId left join  Users uu on s.LastUpdatedByUserId = uu.UserId " + where + " and s.SOid  ='" + DtMain.Rows[i]["SOId"].ToString() + "'  order by ItmName", Dt1);
-                    
+                    itsDriver.fSelectAndFillDataTable(" select s.SOId, s.SODt, s.SONo, replace(i.Name, '\"', 'U+0022') as 'ItmName',replace(i.ImageName,'"+ ConfigurationSettings.AppSettings["FolderPath"] + "', '" + ConfigurationSettings.AppSettings["FolderPathShow"] + "') as ImageNameShow" +
+                                                    ",i.ItmId as itmid, sl.Qty as 'OrderQty',sl.Amount as amount, s.InsertedOn as ExpectedDeliDt, sl.Qty as 'PendingQty',ua.Country as country,ua.State as state,ua.City as city,ua.StreetAddress as saddress,ua.PinCode as pin,ua.MobileNo as MN,ua.FullName as FN,ua.AlternateMobileNumber as AMN" +
+                                                      " ,u.FirstName + ' '+ u.LastName  + case when  s.LastUpdatedByUserId is null then '' else 'Update:' + u.FirstName + ' '+ u.LastName end as UserName,sl.SOLnID,sl.Remarks from OnlineSos s " +
+                                                      " inner join OnlineSOLns sl on sl.SOId = s.SOId " +
+                                                      " inner join UserAddresses ua on ua.UserAddressId = s.UserAddressId" +
+                                                      " inner join Itms i on i.ItmId = sl.ItmId"+
+                                                      " inner join Users u on s.InsertedByUserId = u.UserId left join  Users uu on s.LastUpdatedByUserId = uu.UserId " + where + " and s.SOid  ='" + DtMain.Rows[i]["SOId"].ToString() + "'", Dt1);
+
 
                     string SubData = null;
+
+                    string UserAddress = null;
 
                     for (int inner = 0; inner <= Dt1.Rows.Count - 1; inner++)
                     {
                         SubData += " {" +
                               "    \"SOId\": \"" + ((Dt1.Rows[inner]["SOId"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["SOId"].ToString() + "") + "\"," +
                               "    \"SOLnID\": \"" + ((Dt1.Rows[inner]["SOLnID"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["SOLnID"].ToString() + "") + "\"," +
+                              "    \"ItmId\": \"" + ((Dt1.Rows[inner]["itmid"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["itmid"].ToString() + "") + "\"," +
                               "    \"ItmName\": \"" + ((Dt1.Rows[inner]["ItmName"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["ItmName"].ToString() + "") + "\"," +
-                              "    \"ExpectedDeliDt\": \"" + ((Dt1.Rows[inner]["ExpectedDeliDt"] == DBNull.Value) ? "NULL" : "" +  Convert.ToDateTime(Dt1.Rows[inner]["ExpectedDeliDt"]).ToString("dd-MM-yy") + "") + "\"," +
+                               "    \"ItmImageName\": \"" + ((Dt1.Rows[inner]["ImageNameShow"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["ImageNameShow"].ToString() + "") + "\"," +
+                              "    \"ExpectedDeliDt\": \"" + ((Dt1.Rows[inner]["ExpectedDeliDt"] == DBNull.Value) ? "NULL" : "" + Convert.ToDateTime(Dt1.Rows[inner]["ExpectedDeliDt"]).ToString("dd-MM-yy") + "") + "\"," +
                               "    \"OrderQty\": \"" + ((Dt1.Rows[inner]["OrderQty"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["OrderQty"].ToString() + "") + "\"," +
                               "    \"PendingQty\": \"" + ((Dt1.Rows[inner]["PendingQty"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["PendingQty"].ToString() + "") + "\"," +
+                              "    \"Amount\": \"" + ((Dt1.Rows[inner]["amount"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["amount"].ToString() + "") + "\"," +
                               "    \"Remarks\": \"" + ((Dt1.Rows[inner]["Remarks"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["Remarks"].ToString() + "") + "\"" +
+                              "  }, ";
+                        UserAddress += " {" +
+                            "    \"Country\": \"" + ((Dt1.Rows[inner]["country"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["country"].ToString() + "") + "\"," +
+                             "    \"State\": \"" + ((Dt1.Rows[inner]["state"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["state"].ToString() + "") + "\"," +
+                             "    \"City\": \"" + ((Dt1.Rows[inner]["city"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["city"].ToString() + "") + "\"," +
+                             "    \"StreetAddress\": \"" + ((Dt1.Rows[inner]["saddress"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["saddress"].ToString() + "") + "\"," +
+                             "    \"PinCode\": \"" + ((Dt1.Rows[inner]["pin"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["pin"].ToString() + "") + "\"," +
+                             "    \"MobileNo\": \"" + ((Dt1.Rows[inner]["MN"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["MN"].ToString() + "") + "\"," +
+                             "    \"FullName\": \"" + ((Dt1.Rows[inner]["FN"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["FN"].ToString() + "") + "\"," +
+                             "    \"AlternateMobileNumber\": \"" + ((Dt1.Rows[inner]["AMN"] == DBNull.Value) ? "NULL" : "" + Dt1.Rows[inner]["AMN"].ToString() + "") + "\"" +
                               "  }, ";
                     }
                     if (SubData != null && SubData.ToString().Contains(","))
@@ -319,18 +284,26 @@ public partial class API_OrderListSubTable : System.Web.UI.Page
                     {
                         SubData = "[]";
                     }
+                    if (UserAddress != null && UserAddress.ToString().Contains(","))
+                    {
+                        UserAddress = UserAddress.Remove(UserAddress.LastIndexOf(","));
+                        UserAddress = "[" + UserAddress + "]";
+                    }
+                    else
+                    {
+                        UserAddress = "[]";
+                        }
                     if (Dt1.Rows.Count > 0)
                     {
                         st.Append("{" +
                             "    \"SOId\": \"" + ((DtMain.Rows[i]["SOId"].ToString() == "" || DtMain.Rows[i]["SOId"].ToString() == null) ? "NULL" : "" + DtMain.Rows[i]["SOId"].ToString() + "") + "\"," +
                             "    \"SODt\": \"" + ((DtMain.Rows[i]["SODt"] == DBNull.Value) ? "NULL" : "" + Convert.ToDateTime(DtMain.Rows[i]["SODt"].ToString()).ToString("dd-MM-yy") + "") + "\"," +
                             "    \"SONo\": \"" + ((DtMain.Rows[i]["SONo"] == DBNull.Value) ? "NULL" : "" + DtMain.Rows[i]["SONo"].ToString() + "") + "\"," +
-                            "    \"CustomerName\": \"" + ((DtMain.Rows[i]["CustomerName"] == DBNull.Value) ? "NULL" : "" + DtMain.Rows[i]["CustomerName"].ToString() + "") + "\"," +
                             "    \"UserName\": \"" + ((DtMain.Rows[i]["UserName"] == DBNull.Value) ? "NULL" : "" + DtMain.Rows[i]["UserName"].ToString() + "") + "\"," +
                             "    \"ExpectedDeliDt\": \"" + ((DtMain.Rows[i]["ExpectedDeliDt"] == DBNull.Value) ? "NULL" : "" + Convert.ToDateTime(DtMain.Rows[i]["ExpectedDeliDt"]).ToString("dd-MM-yy") + "") + "\"," +
                             "    \"Itmcount\":  \"" + (Dt1.Rows.Count) + "\"," +
-                            "    \"ItmDetails\": " + ((SubData == null) ? "" : SubData) + "" +
-                            "     "+
+                            "    \"ItmDetails\": " + ((SubData == null) ? "" : SubData) + "," +
+                            "    \"UserAddress\": " + ((UserAddress == null) ? "" : UserAddress) + "" +
                             "},");
                     }
                 }

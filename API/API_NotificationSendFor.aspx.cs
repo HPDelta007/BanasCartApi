@@ -20,7 +20,7 @@ public partial class API_API_NotificationSendFor : System.Web.UI.Page
     string Type;
     string Value;
     string UserId;
-    string APIKey;
+    //string APIKey;
 
     protected void Page_Load(object sender, EventArgs e)
     {
@@ -43,27 +43,27 @@ public partial class API_API_NotificationSendFor : System.Web.UI.Page
                 else
                     UserId = null;
 
-                if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
-                    APIKey = Request.Form["APIKey"].ToString();
-                else
-                    APIKey = null;
+                //if (Request.Form["APIKey"] != null && Request.Form["APIKey"] != "")
+                //    APIKey = Request.Form["APIKey"].ToString();
+                //else
+                //    APIKey = null;
 
                 Response.ContentType = "application/json";
-                string ConfigAPIKey = ConfigurationManager.AppSettings["APIKey"].ToString();
+                //string ConfigAPIKey = ConfigurationManager.AppSettings["APIKey"].ToString();
 
-                if (ConfigAPIKey == APIKey)
-                {
+                //if (ConfigAPIKey == APIKey)
+                //{
                     Response.Write(selectdata());
-                }
-                else
-                {
-                    string sw = "";
-                    StringBuilder s = new StringBuilder();
-                    s.Append("Authentication Key is wrong.");
-                    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
-                    Response.ContentType = "application/json";
-                    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
-                }
+                //}
+                //else
+                //{
+                //    string sw = "";
+                //    StringBuilder s = new StringBuilder();
+                //    s.Append("Authentication Key is wrong.");
+                //    sw = GetReturnValue("209", "Authentication Key is wrong.", s);
+                //    Response.ContentType = "application/json";
+                //    Response.Write(sw.Replace("\\", "").Replace("\"[", "[").Replace("]\"", "]"));
+                //}
             }
             catch (Exception ex)
             {
